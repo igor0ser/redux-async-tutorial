@@ -12,14 +12,24 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const { dispatch, selectedReddit } = this.props
-    dispatch(fetchPosts(selectedReddit))
+    const { dispatch, selectedReddit } = this.props;
+    var selectedItem = this.props.posts.filter((post) => post.title === nextProps.selectedReddit)[0];
+    if (!selectedItem ) {
+    console.log('DISPATCH1');
+    dispatch(fetchPosts(selectedReddit));
+    }
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.selectedReddit !== this.props.selectedReddit) {
-      const { dispatch, selectedReddit } = nextProps
-      dispatch(fetchPosts(selectedReddit))
+    if (this.props.selectedReddit !== nextProps.selectedReddit){
+      var selectedItem = this.props.posts.filter((post) => post.title === nextProps.selectedReddit)[0];
+      console.log('selectedItem');
+      console.log(selectedItem);
+      if (!selectedItem ) {
+        const { dispatch, selectedReddit } = nextProps;
+        console.log('DISPATCH2');
+        dispatch(fetchPosts(selectedReddit))
+      }
     }
   }
 
@@ -35,21 +45,29 @@ class App extends Component {
   }
 
   render() {
-    const { selectedReddit, posts, isFetching, lastUpdated, error } = this.props
-    console.log(this.props);
+    const { selectedReddit, posts, isFetching, error } = this.props
+    var selectedPosts = [];
+    var selectedLastUpdated = false;
+    if (!isFetching){
+      var selectedItem = posts.filter((post) => post.title === selectedReddit)[0];
+      if (selectedItem){
+        console.log(selectedItem);
+        selectedPosts = selectedItem.posts;
+        selectedLastUpdated = selectedItem.received;
+      }
+    }
     const isEmpty = posts.length === 0;
-    console.log(error + ' error');
     return (
       <div>
         <Picker
-          options={['reactjs', 'frontend']}
+          options={['reactjs', 'frontend', 'angularjs', 'webpack', 'ukraine']}
           value={selectedReddit}
           onChange={this.handleChange}
         />
         <p>
-          {lastUpdated &&
+          {selectedLastUpdated &&
             <span>
-              Last updated at {new Date(lastUpdated).toLocaleTimeString()}.
+              Last updated at {new Date(selectedLastUpdated).toLocaleTimeString()}.
               {' '}
             </span>
           }
@@ -63,7 +81,7 @@ class App extends Component {
         { !error && (isEmpty
           ? (isFetching ? <h2>Loading...</h2> : <h2>Empty.</h2>)
           : <div style={{ opacity: isFetching ? 0.5 : 1 }}>
-              <Posts posts={posts} />
+              <Posts posts={selectedPosts} />
             </div>
         )}
         {error &&
@@ -78,7 +96,6 @@ App.propTypes = {
   selectedReddit: PropTypes.string.isRequired,
   posts: PropTypes.array.isRequired,
   isFetching: PropTypes.bool.isRequired,
-  lastUpdated: PropTypes.number,
   dispatch: PropTypes.func.isRequired
 }
 
@@ -86,7 +103,6 @@ function mapStateToProps(state) {
   const { selectedReddit } = state
   const {
     isFetching,
-    lastUpdated,
     items: posts,
     error
   } = state.posts
@@ -95,7 +111,6 @@ function mapStateToProps(state) {
     selectedReddit,
     posts,
     isFetching,
-    lastUpdated,
     error
   }
 }
