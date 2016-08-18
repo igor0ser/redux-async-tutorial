@@ -11,23 +11,22 @@ class App extends Component {
     this.handleRefreshClick = this.handleRefreshClick.bind(this)
   }
 
+  checkInCache(reddit, posts){
+    return posts.filter((post) => post.title === reddit)[0];
+  }
+
   componentDidMount() {
     const { dispatch, selectedReddit } = this.props;
-    var selectedItem = this.props.posts.filter((post) => post.title === nextProps.selectedReddit)[0];
-    if (!selectedItem ) {
-    console.log('DISPATCH1');
-    dispatch(fetchPosts(selectedReddit));
+    var selectedItem = this.checkInCache(selectedReddit, this.props.posts);
+    if ( !selectedItem ) {
+      dispatch(fetchPosts(selectedReddit));
     }
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.selectedReddit !== nextProps.selectedReddit){
-      var selectedItem = this.props.posts.filter((post) => post.title === nextProps.selectedReddit)[0];
-      console.log('selectedItem');
-      console.log(selectedItem);
-      if (!selectedItem ) {
-        const { dispatch, selectedReddit } = nextProps;
-        console.log('DISPATCH2');
+      const { dispatch, selectedReddit } = nextProps;
+    if (this.props.selectedReddit !== selectedReddit){
+      if ( !this.checkInCache(selectedReddit, this.props.posts) ) {
         dispatch(fetchPosts(selectedReddit))
       }
     }
@@ -49,14 +48,13 @@ class App extends Component {
     var selectedPosts = [];
     var selectedLastUpdated = false;
     if (!isFetching){
-      var selectedItem = posts.filter((post) => post.title === selectedReddit)[0];
+      var selectedItem = this.checkInCache(selectedReddit, posts);
       if (selectedItem){
-        console.log(selectedItem);
         selectedPosts = selectedItem.posts;
         selectedLastUpdated = selectedItem.received;
       }
     }
-    const isEmpty = posts.length === 0;
+    const isEmpty = selectedPosts.length === 0;
     return (
       <div>
         <Picker
